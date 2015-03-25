@@ -13,8 +13,8 @@ GPIO.setwarnings(False)
 
 NSQ_HOST = "localhost"
 
-nsqd = gnsq.Nsqd(address = NSQ_HOST, http_port=4151)
-reader = gnsq.Reader("sinyu","all", NSQ_HOST + ":4150")
+nsqd = None
+reader = None
 
 USED_PINS = [7,11,13,15]
 CURRENT_STATE_FILE_PATH = "current_state.json"
@@ -140,13 +140,17 @@ def main():
     global _current_state
     global USED_PINS
     global NSQ_HOST
+    global nsqd
+    global reader
 
     print "SinyuPi client v0.1"
-    print "starting..."
+
 
     if len(sys.argv) < 2:
         print "usage: %s [NSQ-HOST]" % sys.argv[0]
         return
+
+    print "starting..."
 
     NSQ_HOST = sys.argv[1]
 
@@ -167,6 +171,9 @@ def main():
     # pre-setup
     for pin, state in _current_state.iteritems():
         GPIO.output(int(pin), state)
+
+    nsqd = gnsq.Nsqd(address = NSQ_HOST, http_port=4151)
+    reader = gnsq.Reader("sinyu","all", NSQ_HOST + ":4150")
 
     save_state()
     nsqd.publish("sinyu_server", json.dumps(_current_state))
