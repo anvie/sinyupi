@@ -2,6 +2,7 @@ import web
 import json
 import gnsq
 import sqlite3
+import os
 
 urls = (
     '/', 'FrontPage',
@@ -28,7 +29,7 @@ def get_pins_state():
             _csjson = text_file.read().strip()
             if len(_csjson) > 0:
                 return json.loads(_csjson)
-    return "{}"
+    return {}
 
 
 
@@ -41,7 +42,7 @@ class FrontPage:
         #sql_conn.close()
         #pins_state = json.loads(v)
         pins_state = get_pins_state()
-        return render.index(pins_state,v)
+        return render.index(pins_state, json.dumps(pins_state))
 
 
 nsqd = gnsq.Nsqd(address='localhost', http_port=4151)
