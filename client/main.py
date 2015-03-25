@@ -59,56 +59,6 @@ def sync():
     except Exception, e:
          pass
 
-@reader.on_message.connect
-def handler(reader, message):
-    global _processed
-    global _current_state
-
-    if message.id in _processed:
-        return
-    print "got message:",message.body,", id:", message.id
-    _processed.insert(0, message.id)
-    if len(_processed) > 5:
-        _processed.pop()
-    msg = message.body.strip()
-    state = "off"
-    if msg.endswith(":on"):
-        state = "on"
-
-    if msg.startswith("lampu_jalan"):
-        if state == "on":
-            print "nyalain lampu jalan..."
-            activate(13)
-        else:
-            deactivate(13)
-        sync()
-    elif msg.startswith("lampu_garasi"):
-        if state == "on":
-            print "nyalain lampu garasi..."
-            activate(15)
-        else:
-            print "matiin lampu garasi..."
-            deactivate(15)
-        sync()
-    elif msg.startswith("lampu_1_r_tamu"):
-        if state == "on":
-            print "nyalain lampu tengah..."
-            activate(11)
-        else:
-            print "matiin lampu tengah..."
-            deactivate(11)
-        sync()
-    elif msg.startswith("terminal_r_tamu"):
-        if state == "on":
-            print "nyalain stop kontak ruang tengah..."
-            activate(7)
-        else:
-            print "matiin stop kontak ruang tengah..."
-            deactivate(7)
-        sync()
-
-    if msg == "sync":
-        sync()
 
 import threading
 
@@ -174,6 +124,57 @@ def main():
 
     nsqd = gnsq.Nsqd(address = NSQ_HOST, http_port=4151)
     reader = gnsq.Reader("sinyu","all", NSQ_HOST + ":4150")
+
+    @reader.on_message.connect
+    def handler(reader, message):
+        global _processed
+        global _current_state
+
+        if message.id in _processed:
+            return
+        print "got message:",message.body,", id:", message.id
+        _processed.insert(0, message.id)
+        if len(_processed) > 5:
+            _processed.pop()
+        msg = message.body.strip()
+        state = "off"
+        if msg.endswith(":on"):
+            state = "on"
+
+        if msg.startswith("lampu_jalan"):
+            if state == "on":
+                print "nyalain lampu jalan..."
+                activate(13)
+            else:
+                deactivate(13)
+            sync()
+        elif msg.startswith("lampu_garasi"):
+            if state == "on":
+                print "nyalain lampu garasi..."
+                activate(15)
+            else:
+                print "matiin lampu garasi..."
+                deactivate(15)
+            sync()
+        elif msg.startswith("lampu_1_r_tamu"):
+            if state == "on":
+                print "nyalain lampu tengah..."
+                activate(11)
+            else:
+                print "matiin lampu tengah..."
+                deactivate(11)
+            sync()
+        elif msg.startswith("terminal_r_tamu"):
+            if state == "on":
+                print "nyalain stop kontak ruang tengah..."
+                activate(7)
+            else:
+                print "matiin stop kontak ruang tengah..."
+                deactivate(7)
+            sync()
+
+        if msg == "sync":
+            sync()
 
     save_state()
     nsqd.publish("sinyu_server", json.dumps(_current_state))
