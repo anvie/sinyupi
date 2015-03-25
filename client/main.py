@@ -68,7 +68,7 @@ class TimeScheduler(threading.Thread):
         while True:
             sleep(5)
             _now = datetime.now().replace(tzinfo=pytz.utc).astimezone(local_tz)
-            print ("    time: ", _now)
+            #print ("    time: ", _now)
             if _now.hour == 18 and _now.minute == 0:
 #         if _now.hour == 10 and _now.minute == 18:
 #                nsqd.publish("sinyu", "lampu_jalan:on")
