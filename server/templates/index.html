@@ -1,0 +1,97 @@
+$def with (data, data_str)
+<html>
+  <head>
+
+    <title>Sinyu</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+
+    <style type="text/css">
+       @-ms-viewport{
+           width: device-width;
+       }
+       body {
+           font-size: 1em;
+           font-family: Calibri, Verdana, Arial;
+       }
+
+       .btn {
+           width: 90%;
+           /*height: 50px;*/
+           padding: 40px;
+           border: 1px solid #999;
+           background-color: #eee;
+           /*display: inline-block;
+           display: inline;*/
+           cursor: pointer;
+       }
+       .btn.on {
+           background-color: #3DF4A5;
+       }
+
+    </style>
+  </head>
+<body>
+
+<script type="text/javascript">
+$$(document).ready(function(){
+
+    var state = {},
+        pins_state = $:data_str;
+
+    function get_state(pos){
+        if (!state[pos]){
+           state[pos] = 'off';
+        }
+        if (state[pos] == 'off'){
+           state[pos] = 'on';
+        }else{
+           state[pos] = 'off';
+        }
+        return state[pos];
+    }
+
+    function apply_state(){
+        for (var k in pins_state){
+            state[k] = pins_state[k] == 1 ? "on" : "off";
+            $$("div.btn[data-pin=" + k + "]").attr("class", "btn " + state[k]);
+        }
+    }
+    apply_state();
+
+    $$(".btn").click(function(){
+        var name = $$(this).data("name"),
+            pin = $$(this).data("pin"),
+            state =  get_state(pin);
+
+        $$.post("/terminal/" + name + "/" + state);
+        $$(this).attr("class", "btn " + state);
+    });
+
+});
+</script>
+
+<h2>HAL DEPAN</h2>
+
+<div id="Teras1" class="btn" data-name="lampu_jalan" data-pin="13">
+    LAMPU JALAN
+</div>
+<div id="Teras2" class="btn" data-name="lampu_garasi" data-pin="15">
+    LAMPU GARASI
+</div>
+
+<h2>HAL TENGAH</h2>
+
+<div class="btn" data-name="lampu_1_r_tamu" data-pin="11">
+    LAMPU R. TAMU 1
+</div>
+
+<div class="btn" data-name="terminal_r_tamu" data-pos="2" data-pin="7">
+    TERMINAL R. TAMU
+</div>
+
+</body>
+
+</html>
