@@ -85,44 +85,11 @@ class TimeScheduler(threading.Thread):
                 deactivate(15)
                 sync()
 
-
-def main():
-    global _current_state
-    global USED_PINS
+def setup_nsq_handler():
     global NSQ_HOST
-    global nsqd
     global reader
 
-    print "SinyuPi client v0.1"
 
-
-    if len(sys.argv) < 2:
-        print "usage: %s [NSQ-HOST]" % sys.argv[0]
-        return
-
-    print "starting..."
-
-    NSQ_HOST = sys.argv[1]
-
-    print "using nsq host:", NSQ_HOST
-
-    load_state()
-    print "current state:", json.dumps(_current_state)
-
-    sleep(2)
-
-    print "setup GPIO..."
-
-    GPIO.setmode(GPIO.BOARD)
-
-    for pin in USED_PINS:
-        GPIO.setup(pin, GPIO.OUT, initial=_current_state.get(pin,GPIO.HIGH))
-
-    # pre-setup
-    for pin, state in _current_state.iteritems():
-        GPIO.output(int(pin), state)
-
-    nsqd = gnsq.Nsqd(address = NSQ_HOST, http_port=4151)
     reader = gnsq.Reader("sinyu","all", NSQ_HOST + ":4150")
 
     @reader.on_message.connect
@@ -176,6 +143,47 @@ def main():
         if msg == "sync":
             sync()
 
+    reader.start()
+
+
+def main():
+    global _current_state
+    global USED_PINS
+    global NSQ_HOST
+    global nsqd
+    global reader
+
+    print "SinyuPi client v0.1"
+
+
+    if len(sys.argv) < 2:
+        print "usage: %s [NSQ-HOST]" % sys.argv[0]
+        return
+
+    print "starting..."
+
+    NSQ_HOST = sys.argv[1]
+
+    print "using nsq host:", NSQ_HOST
+
+    load_state()
+    print "current state:", json.dumps(_current_state)
+
+    sleep(2)
+
+    print "setup GPIO..."
+
+    GPIO.setmode(GPIO.BOARD)
+
+    for pin in USED_PINS:
+        GPIO.setup(pin, GPIO.OUT, initial=_current_state.get(pin,GPIO.HIGH))
+
+    # pre-setup
+    for pin, state in _current_state.iteritems():
+        GPIO.output(int(pin), state)
+
+    nsqd = gnsq.Nsqd(address = NSQ_HOST, http_port=4151)
+
     save_state()
     nsqd.publish("sinyu_server", json.dumps(_current_state))
 
@@ -186,7 +194,7 @@ def main():
 
     print "running..."
 
-    reader.start()
+    setup_nsq_handler()
 
     print "  done."
 
