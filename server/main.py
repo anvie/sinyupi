@@ -17,6 +17,7 @@ render = web.template.render('templates/')
 
 
 def set_pins_state(state):
+    global CURRENT_STATE_FILE_PATH
     print "set to:", state
     _csjson = json.dumps(state)
     text_file = open(CURRENT_STATE_FILE_PATH, "w")
@@ -24,6 +25,7 @@ def set_pins_state(state):
     text_file.close()
 
 def get_pins_state():
+    global CURRENT_STATE_FILE_PATH
     if os.path.exists(CURRENT_STATE_FILE_PATH):
         with open(CURRENT_STATE_FILE_PATH, "r") as text_file:
             _csjson = text_file.read().strip()
@@ -68,6 +70,8 @@ class Syncher(threading.Thread):
         def handler(reader, message):
             try:
                 msg = message.body.strip()
+
+                # hanya di-save apabila client sudah confirm
                 set_pins_state(json.loads(msg))
                 #sql_conn = sqlite3.connect("data.db")
                 #c = sql_conn.cursor()
