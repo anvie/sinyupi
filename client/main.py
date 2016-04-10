@@ -53,11 +53,16 @@ def load_state():
 
 _processed = []
 
+import traceback
+from gnsq import protocol
+
 def sync():
     try:
         nsqd.publish("sinyu_server", json.dumps(_current_state))
+        #nsqd.send(protocol.publish("sinyu_server", json.dumps(_current_state)), async=True)
     except Exception, e:
-         pass
+        print e
+        print traceback.format_exc()
 
 
 import threading
@@ -68,7 +73,7 @@ class TimeScheduler(threading.Thread):
         while True:
             sleep(5)
             _now = datetime.now().replace(tzinfo=pytz.utc).astimezone(local_tz)
-            print ("    time: ", _now)
+            #print ("    time: ", _now)
             if _now.hour == 18 and _now.minute == 0:
 #         if _now.hour == 10 and _now.minute == 18:
 #                nsqd.publish("sinyu", "lampu_jalan:on")
@@ -84,6 +89,11 @@ class TimeScheduler(threading.Thread):
                 deactivate(13)
                 deactivate(15)
                 sync()
+
+            if _now.hour == 1 and _now.minute == 0: # jam satu malam
+                deactivate(13)
+                sync()
+
 
 def setup_nsq_handler():
     global NSQ_HOST
