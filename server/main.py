@@ -3,6 +3,7 @@ import json
 import gnsq
 import sqlite3
 import os
+import sys
 
 urls = (
     '/', 'FrontPage',
@@ -12,7 +13,13 @@ urls = (
 
 CURRENT_STATE_FILE_PATH = "current_state.json"
 
-app = web.application(urls, globals())
+class MyApplication(web.application):
+    def run(self, port=8080, *middleware):
+        func = self.wsgifunc(*middleware)
+        return web.httpserver.runsimple(func, ('127.0.0.1', port))
+
+#app = web.application(urls, globals())
+app = MyApplication(urls, globals())
 render = web.template.render('templates/')
 
 
@@ -100,9 +107,15 @@ if __name__ == "__main__":
 
 #    setup_sqlite()
 
+    if len(sys.argv) < 2:
+        print "Usage: %s [PORT]" % sys.argv[0]
+        sys.exit(2)
+
+    port = int(sys.argv[1])
+
     th = Syncher()
     th.daemon = True
     th.start()
 
     nsqd.publish('sinyu', 'sync')
-    app.run()
+    app.run(port=port)
